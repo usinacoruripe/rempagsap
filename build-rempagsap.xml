@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!-- ====================================================================== 
+     01/02/2005 17:01:42                                                        
+
+     bmneto                                                                
+     ====================================================================== -->
+<project name="rempagsap" default="jar" basedir=".">
+	<property name="name_jar" value="rempagsap"/>
+
+	<pathconvert property="project.manifest" pathsep=" ">   
+        <chainedmapper>   
+            <flattenmapper />   
+            <globmapper from="*" to="lib/*" />   
+        </chainedmapper>
+		<path>
+        	<fileset dir="lib/">   
+	            <include name="**/*.jar" />   
+	        </fileset>   
+	    </path>	  
+	</pathconvert>
+	
+	<target name="compile">
+		<mkdir dir="bin"/>
+		<javac srcdir="src" destdir="bin" debug="on" deprecation="on"/>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${name_jar}.jar" basedir="bin">
+			<manifest>
+				<attribute name="Main-Class" value="negocio.ControladorRemessa" />
+				<attribute name="Class-Path" value="${project.manifest}"/>
+			</manifest>
+		</jar>
+	</target>
+
+</project>
+

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+  <entry key="mail-host">smtp.usinacoruripe.com.br</entry>
+  <entry key="mail-responsaveis">bruno.barros@usinacoruripe.com.br</entry>
+  <entry key="mail-financeiro_OLD">contasapagar@usinacoruripe.com.br</entry>
+  <entry key="mail-financeiro">wamer.borges@usinacoruripe.com.br</entry>
+  <entry key="sc-port">9465</entry>
+  <entry key="sc-name">controladorRemessas</entry>
+  <entry key="caminho-origem-itau">/home/appservicos/rempagsap/arquivos_PRD/itau</entry>
+  <entry key="caminho-origem-std">/home/appservicos/rempagsap/arquivos_PRD/std</entry>
+  <entry key="caminho-destino-itau">//flsitu201/dfs/Iturama/Compartilhados/Contas a Pagar/21 - ARQUIVOS EDI/1 - Arquivos a Enviar</entry>  
+  <entry key="caminho-destino-std">//flsitu201/dfs/Iturama/Compartilhados/Contas a Pagar/35 - ARQUIVOS EDI Santander/1 - Arquivos a Enviar/GE207684</entry>  
+  <entry key="usuario-rede">svc.rempagsap</entry>
+  <entry key="senha-rede">S3rvR3P@gS@p</entry>
+  <entry key="hora-inicio">13:50:00</entry>
+  <entry key="intervalo-milissegundos">300000</entry>
+</properties>
