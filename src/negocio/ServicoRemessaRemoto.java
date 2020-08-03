@@ -7,5 +7,5 @@ public interface ServicoRemessaRemoto extends Remote {
 	
 	public void pararServico() throws Exception;
 	
-	public void executarCopiaArquivosRemessa(String banco) throws Exception;
+	public int executarCopiaArquivosRemessa(String banco) throws Exception;
 }

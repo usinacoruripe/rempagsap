@@ -13,6 +13,6 @@
   <entry key="caminho-destino-std">//flsitu201/dfs/Iturama/Compartilhados/Contas a Pagar/35 - ARQUIVOS EDI Santander/1 - Arquivos a Enviar/GE207684</entry>  
   <entry key="usuario-rede">svc.rempagsap</entry>
   <entry key="senha-rede">S3rvR3P@gS@p</entry>
-  <entry key="hora-inicio">13:50:00</entry>
-  <entry key="intervalo-milissegundos">300000</entry>
+  <entry key="hora-inicio">11:44:00</entry>
+  <entry key="intervalo-milissegundos">60000</entry>
 </properties>

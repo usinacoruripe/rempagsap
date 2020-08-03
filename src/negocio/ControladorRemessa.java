@@ -34,6 +34,8 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 	private static final int tamanhoMaximoLog = 4096000;
 	public static final String BANCO_ITAU = "itau";
 	public static final String BANCO_SANTANDER = "std";
+	public static final String BANCO_BRASIL = "bbra";
+	public static final String CARGA_NF_EM_ABERTO = "carganf";
 	
 	ControladorConfiguracao configuracao;
 
@@ -48,7 +50,14 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 		Registry registry = LocateRegistry.createRegistry(configuracao.getScPort());
 		registry.bind(this.configuracao.getScName(), stub);
 		
-		Date dataInicio = Format.stringToDate(Format.formatDate(new Date(), "dd/MM/yyyy") + " " + this.configuracao.getHoraInicioServico(), "dd/MM/yyyy HH:mm:ss");
+		//Date dataInicio = Format.stringToDate(Format.formatDate(new Date(), "dd/MM/yyyy") + " " + this.configuracao.getHoraInicioServico(), "dd/MM/yyyy HH:mm:ss");
+		
+		//Formatado para começar em minutos redondos (seguntos serados) 2 minutos após o inicio do serviço
+		
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.MINUTE, cal.get(Calendar.MINUTE)+2);
+		
+		Date dataInicio = Format.stringToDate(Format.formatDate(cal.getTime(), "dd/MM/yyyy") + " " + Format.formatDate(cal.getTime(), "HH:mm") + ":00", "dd/MM/yyyy HH:mm:ss");
 
 		//Execura a cada 5 minutos (300000 milisegundos)
 		agendador.schedule(this, dataInicio, new Long(this.configuracao.getIntervaloExecucaoMilisseguntos()));
@@ -64,18 +73,19 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 	}
 
 	@Override
-	public void executarCopiaArquivosRemessa(String banco) throws Exception {
+	public int executarCopiaArquivosRemessa(String banco) throws Exception {
 		FileWriter writer = null;
 		PrintWriter saida = null;
+		int qtdArquivosCopiados = 0;
 
 		try {			
-			verificarLimiteLog("registro");
-			writer = new FileWriter(getArquivoLog("registro"),true);
+			verificarLimiteLog("arquivos_copiados");
+			writer = new FileWriter(getArquivoLog("arquivos_copiados"),true);
 			saida = new PrintWriter(writer,true);
 
 			//saida.println("** Cópia iniciada em " + DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss") +"**");
 
-			//Lista os arquivos	ITAU	
+			//Lista os arquivos	do banco	
 			File pastaOrigem = new File(this.configuracao.getCaminhoOrigem(banco));
 			File[] arquivos = pastaOrigem.listFiles();
 			String arquivosCopiados = "";
@@ -84,13 +94,15 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 			StringBuffer nomeArquivoDestino = null;
 			
 			for (File file : arquivos) {
-				if( file.isFile() && file.getName().startsWith("REMPAG") ) {
+				if( file.isFile() && ( file.getName().startsWith("REMPAG") || file.getName().startsWith("CARGANF") ) ) {
 					msgErro = new StringBuffer();
 					nomeArquivoDestino = new StringBuffer();
 					nomeArquivoDestino.append(this.configuracao.getCaminhoDestino(banco)+File.separator+file.getName());
 					
 					if( this.moverArquivo(file, nomeArquivoDestino, this.configuracao.getUsuarioRede(), this.configuracao.getSenhaRede(), msgErro) ) {
-						saida.println("Arquivo copiado: " + nomeArquivoDestino);
+						saida.println("Arquivo copiado: " + nomeArquivoDestino + " em " + DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss") + ".");
+						
+						qtdArquivosCopiados++;
 						arquivosCopiados += ("<br>" + nomeArquivoDestino);
 						file.delete();
 					} else {
@@ -101,10 +113,6 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 			}
 			
 			this.enviarEmailCopias(arquivosCopiados, arquivosNaoCopiados);
-
-			saida.println("** BANCO "+ banco +": Cópia finalizada em " + DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss") +"**");
-			saida.println(" ");			
-
 
 		} catch (Throwable e) {
 			verificarLimiteLog("erro");
@@ -124,6 +132,8 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 			if( saida  != null ) saida.close();  
 			if( writer != null ) writer.close();
 		}
+		
+		return qtdArquivosCopiados;
 
 	}	
 
@@ -296,14 +306,37 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 
 	@Override
 	public void run() {
+		FileWriter writer = null;
+		PrintWriter saida = null;
+		
 		try {
+			verificarLimiteLog("registro");
+			writer = new FileWriter(getArquivoLog("registro"),true);
+			saida = new PrintWriter(writer,true);
+			int qtdArquivosCopiados = 0;
+			
 			//Processa banco Itau
-			this.executarCopiaArquivosRemessa(ControladorRemessa.BANCO_ITAU);
+			qtdArquivosCopiados = qtdArquivosCopiados + this.executarCopiaArquivosRemessa(ControladorRemessa.BANCO_ITAU);
 			
 			//Processa banco Santander
-			this.executarCopiaArquivosRemessa(ControladorRemessa.BANCO_SANTANDER);
+			qtdArquivosCopiados = qtdArquivosCopiados + this.executarCopiaArquivosRemessa(ControladorRemessa.BANCO_SANTANDER);
+			
+			//Processa Banco do Brasil
+			qtdArquivosCopiados = qtdArquivosCopiados + this.executarCopiaArquivosRemessa(ControladorRemessa.BANCO_BRASIL);
+
+			//Processa Os arquivos de notas fiscais em aberto
+			qtdArquivosCopiados = qtdArquivosCopiados + this.executarCopiaArquivosRemessa(ControladorRemessa.CARGA_NF_EM_ABERTO);
+			
+			saida.println("** Serviço executado em " + DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss") +". "+qtdArquivosCopiados +" arquivos copiados**");
+			saida.println(" ");
+			
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			try {
+			if( saida  != null ) saida.close();  
+			if( writer != null ) writer.close();
+			} catch (Exception e2) {}
 		}
 
 	}
