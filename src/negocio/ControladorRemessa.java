@@ -92,14 +92,20 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 			String arquivosNaoCopiados = "";
 			StringBuffer msgErro = null;
 			StringBuffer nomeArquivoDestino = null;
+			String extensao = null;
 			
 			for (File file : arquivos) {
 				if( file.isFile() && ( file.getName().startsWith("REMPAG") || file.getName().startsWith("CARGANF") ) ) {
 					msgErro = new StringBuffer();
 					nomeArquivoDestino = new StringBuffer();
 					nomeArquivoDestino.append(this.configuracao.getCaminhoDestino(banco)+File.separator+file.getName());
+					if( file.getName().startsWith("CARGANF") ) {
+						extensao = ".csv";						
+					} else {
+						extensao = "";
+					}
 					
-					if( this.moverArquivo(file, nomeArquivoDestino, this.configuracao.getUsuarioRede(), this.configuracao.getSenhaRede(), msgErro) ) {
+					if( this.moverArquivo(file, nomeArquivoDestino, extensao, this.configuracao.getUsuarioRede(), this.configuracao.getSenhaRede(), msgErro) ) {
 						saida.println("Arquivo copiado: " + nomeArquivoDestino + " em " + DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss") + ".");
 						
 						qtdArquivosCopiados++;
@@ -245,7 +251,7 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 		}
 	}
 
-	private boolean moverArquivo(File origem, StringBuffer destino, String usuarioRede, String senhaRede, StringBuffer msgErro ) throws IOException {		
+	private boolean moverArquivo(File origem, StringBuffer destino, String extensao, String usuarioRede, String senhaRede, StringBuffer msgErro ) throws IOException {		
 		SmbFileOutputStream out = null;
 		FileInputStream fis = null;
 		boolean sucesso = false;
@@ -258,11 +264,11 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 		try {			
 			NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication("USINACORURIPE", usuarioRede, senhaRede);
 
-			SmbFile arquivoDestino = new SmbFile("smb:"+nomeArquivoDestino, auth);
+			SmbFile arquivoDestino = new SmbFile("smb:"+nomeArquivoDestino+extensao, auth);
 			
 			while( arquivoDestino.exists() ) {
 				cont++;
-				arquivoDestino = new SmbFile("smb:"+nomeArquivoDestino + Format.formatNumber(cont, "00"), auth);
+				arquivoDestino = new SmbFile("smb:"+nomeArquivoDestino + Format.formatNumber(cont, "00") + extensao, auth);
 			}
 			
 			out = new SmbFileOutputStream(arquivoDestino);
