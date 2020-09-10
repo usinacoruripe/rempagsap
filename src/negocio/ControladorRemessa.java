@@ -19,6 +19,7 @@ import java.util.TimerTask;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 
@@ -99,13 +100,8 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 					msgErro = new StringBuffer();
 					nomeArquivoDestino = new StringBuffer();
 					nomeArquivoDestino.append(this.configuracao.getCaminhoDestino(banco)+File.separator+file.getName());
-					if( file.getName().startsWith("CARGANF") ) {
-						extensao = ".csv";						
-					} else {
-						extensao = "";
-					}
-					
-					if( this.moverArquivo(file, nomeArquivoDestino, extensao, this.configuracao.getUsuarioRede(), this.configuracao.getSenhaRede(), msgErro) ) {
+										
+					if( this.moverArquivo(file, nomeArquivoDestino, this.configuracao.getUsuarioRede(), this.configuracao.getSenhaRede(), msgErro) ) {
 						saida.println("Arquivo copiado: " + nomeArquivoDestino + " em " + DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss") + ".");
 						
 						qtdArquivosCopiados++;
@@ -127,6 +123,8 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 				saida = new PrintWriter(writer,true);
 				saida.append("["+DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss")+"]");
 				saida.append("\n");
+				saida.append("Banco: " + banco + "\n");
+				saida.append("Caminho: "+ this.configuracao.getCaminhoOrigem(banco) + "\n");
 				e.printStackTrace(saida);
 				this.enviarEmailErro(e);
 				saida.close();  
@@ -251,15 +249,23 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 		}
 	}
 
-	private boolean moverArquivo(File origem, StringBuffer destino, String extensao, String usuarioRede, String senhaRede, StringBuffer msgErro ) throws IOException {		
+	private boolean moverArquivo(File origem, StringBuffer destino, String usuarioRede, String senhaRede, StringBuffer msgErro ) throws IOException {		
 		SmbFileOutputStream out = null;
 		FileInputStream fis = null;
 		boolean sucesso = false;
 		int cont = 1;
+		String extensao = null;
+		
 		String dataHora = Format.formatDate(new Date(), "yyMMdd") + Format.formatDate(new Date(), "HHmm");
 		String nomeArquivoDestino = destino.toString();
-		//remove sequencial do SAP. Ex.: /usr/sap/DMS/Financeiro/REMPAG01 -> /usr/sap/DMS/Financeiro/REMPAG
-		nomeArquivoDestino = nomeArquivoDestino.substring(0,nomeArquivoDestino.length()-2) + dataHora;
+		
+		if( origem.getName().startsWith("CARGANF") ) {
+			extensao = ".csv";						
+		} else {
+			extensao = "";
+			//remove sequencial do SAP. Ex.: /usr/sap/DMS/Financeiro/REMPAG01 -> /usr/sap/DMS/Financeiro/REMPAG
+			nomeArquivoDestino = nomeArquivoDestino.substring(0,nomeArquivoDestino.length()-2) + dataHora;
+		}		
 		
 		try {			
 			NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication("USINACORURIPE", usuarioRede, senhaRede);
