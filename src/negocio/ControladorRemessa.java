@@ -96,7 +96,7 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 			String extensao = null;
 			
 			for (File file : arquivos) {
-				if( file.isFile() && ( file.getName().startsWith("REMPAG") || file.getName().startsWith("CARGANF") ) ) {
+				if( file.isFile() && ( file.getName().startsWith("REMPAG") || file.getName().startsWith("CARGANF") || file.getName().startsWith("CARGAGR") ) ) {
 					msgErro = new StringBuffer();
 					nomeArquivoDestino = new StringBuffer();
 					nomeArquivoDestino.append(this.configuracao.getCaminhoDestino(banco)+File.separator+file.getName());
