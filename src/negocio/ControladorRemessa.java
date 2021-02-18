@@ -99,7 +99,7 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 				if( file.isFile() && ( file.getName().startsWith("REMPAG") || file.getName().startsWith("CARGANF") || file.getName().startsWith("CARGAGR") ) ) {
 					msgErro = new StringBuffer();
 					nomeArquivoDestino = new StringBuffer();
-					nomeArquivoDestino.append(this.configuracao.getCaminhoDestino(banco)+File.separator+file.getName());
+					nomeArquivoDestino.append(this.configuracao.getCaminhoDestino(banco)+File.separator+file.getName());					
 										
 					if( this.moverArquivo(file, nomeArquivoDestino, this.configuracao.getUsuarioRede(), this.configuracao.getSenhaRede(), msgErro) ) {
 						saida.println("Arquivo copiado: " + nomeArquivoDestino + " em " + DateFormatUtils.format(new Date(), "dd/MM/yyyy HH:mm:ss") + ".");
@@ -259,7 +259,13 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 		String dataHora = Format.formatDate(new Date(), "yyMMdd") + Format.formatDate(new Date(), "HHmm");
 		String nomeArquivoDestino = destino.toString();
 		
-		if( origem.getName().startsWith("CARGANF") ) {
+		if( this.configuracao.getAmbienteSAP().equalsIgnoreCase("QAS")) {
+			nomeArquivoDestino = nomeArquivoDestino.replaceFirst("CARGANF","CARGANF_QA");
+			nomeArquivoDestino = nomeArquivoDestino.replaceFirst("CARGAGR","CARGAGR_QA");
+			nomeArquivoDestino = nomeArquivoDestino.replaceFirst("REMPAG","REMPAG_QA");
+		}
+		
+		if( origem.getName().startsWith("CARGANF") || origem.getName().startsWith("CARGAGR") ) {
 			extensao = ".csv";						
 		} else {
 			extensao = "";

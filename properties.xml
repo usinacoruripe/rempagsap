@@ -18,4 +18,5 @@
   <entry key="usuario-rede">svc.rempagsap</entry>
   <entry key="senha-rede">S3rvR3P@gS@p</entry>
   <entry key="intervalo-milissegundos">60000</entry>
+  <entry key="ambiente-sap">QAS</entry>
 </properties>

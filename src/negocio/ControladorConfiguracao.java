@@ -61,6 +61,10 @@ public class ControladorConfiguracao {
 		return this.carregarPropriedades().getProperty("hora-inicio");
 	}
 	
+	public String getAmbienteSAP() throws InvalidPropertiesFormatException, FileNotFoundException, IOException {
+		return this.carregarPropriedades().getProperty("ambiente-sap");
+	}
+	
 	public String getIntervaloExecucaoMilisseguntos() throws InvalidPropertiesFormatException, FileNotFoundException, IOException {
 		return this.carregarPropriedades().getProperty("intervalo-milissegundos");
 	}	
