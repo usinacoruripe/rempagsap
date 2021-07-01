@@ -19,6 +19,9 @@ import java.util.TimerTask;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
@@ -50,6 +53,14 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 		Remote stub = (Remote) UnicastRemoteObject.exportObject(this, 0);
 		Registry registry = LocateRegistry.createRegistry(configuracao.getScPort());
 		registry.bind(this.configuracao.getScName(), stub);
+		
+		//Evitar erro de java.net.UnknownHostException
+		HostnameVerifier hv = new HostnameVerifier() {
+		    public boolean verify(String hostname, SSLSession session) {  
+		        return true;
+		    }
+		};
+		HttpsURLConnection.setDefaultHostnameVerifier(hv);
 		
 		//Date dataInicio = Format.stringToDate(Format.formatDate(new Date(), "dd/MM/yyyy") + " " + this.configuracao.getHoraInicioServico(), "dd/MM/yyyy HH:mm:ss");
 		
@@ -93,7 +104,6 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 			String arquivosNaoCopiados = "";
 			StringBuffer msgErro = null;
 			StringBuffer nomeArquivoDestino = null;
-			String extensao = null;
 			
 			for (File file : arquivos) {
 				if( file.isFile() && ( file.getName().startsWith("REMPAG") || file.getName().startsWith("CARGANF") || file.getName().startsWith("CARGAGR") ) ) {
@@ -237,8 +247,14 @@ public class ControladorRemessa extends TimerTask implements ServicoRemessaRemot
 	public static File getArquivoLog(String arquivo) {
 		File diretorio = new File("logs");
 		if (!diretorio.exists())
-			diretorio.mkdir();		
-		return new File("logs" + File.separator + arquivo + ".log");
+			diretorio.mkdir();
+		File arquivoLog = new File("logs" + File.separator + arquivo + ".log"); 
+				
+		arquivoLog.setReadable(true,false);
+        arquivoLog.setWritable(true, false);
+        arquivoLog.setExecutable(true,false);
+				
+		return arquivoLog;
 	}
 
 	public static void verificarLimiteLog(String nomeArquivoLog) {
